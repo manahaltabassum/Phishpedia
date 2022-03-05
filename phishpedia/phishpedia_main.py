@@ -1,8 +1,8 @@
-from phishpedia_config import *
+from .phishpedia_config import *
 import os
 import argparse
 import time
-from src.util.chrome import *
+from .src.util.chrome import *
 # import os
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
@@ -15,17 +15,22 @@ os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 #####################################################################################################################
 
 
-def main(url, screenshot_path):
+def test(url, screenshot_path, ELE_MODEL, SIAMESE_THRE, SIAMESE_MODEL, LOGO_FEATS, LOGO_FILES, DOMAIN_MAP_PATH):
     '''
     Phishdiscovery for phishpedia main script
     :param url: URL
     :param screenshot_path: path to screenshot
+    :param ELE_MODEL: logo detector
+    :param SIAMESE_THRE: threshold for Siamese
+    :param SIAMESE_MODEL: siamese model
+    :param LOGO_FEATS: cached reference logo features
+    :param LOGO_FILES: cached reference logo paths
+    :param DOMAIN_MAP_PATH: domain map.pkl
     :return phish_category: 0 for benign 1 for phish
     :return pred_target: None or phishing target
     :return plotvis: predicted image
     :return siamese_conf: siamese matching confidence
     '''
-
     # 0 for benign, 1 for phish, default is benign
     phish_category = 0
     pred_target = None
@@ -33,7 +38,7 @@ def main(url, screenshot_path):
     print("Entering phishpedia")
 
     ####################### Step1: layout detector ##############################################
-    pred_boxes, _, _, _ = pred_rcnn(im=screenshot_path, predictor=ele_model)
+    pred_boxes, _, _, _ = pred_rcnn(im=screenshot_path, predictor=ELE_MODEL)
     pred_boxes = pred_boxes.detach().cpu().numpy()  ## get predicted logo box
     plotvis = vis(screenshot_path, pred_boxes)
     print("plot")
@@ -46,17 +51,17 @@ def main(url, screenshot_path):
 
     ######################## Step2: Siamese (logo matcher) ########################################
     pred_target, matched_coord, siamese_conf = phishpedia_classifier_logo(logo_boxes=pred_boxes,
-                                                                     domain_map_path=domain_map_path,
-                                                                     model=pedia_model,
-                                                                     logo_feat_list=logo_feat_list,
-                                                                     file_name_list=file_name_list,
+                                                                     domain_map_path=DOMAIN_MAP_PATH,
+                                                                     model=SIAMESE_MODEL,
+                                                                     logo_feat_list=LOGO_FEATS,
+                                                                     file_name_list=LOGO_FILES,
                                                                      url=url,
                                                                      shot_path=screenshot_path,
-                                                                     ts=siamese_ts)
+                                                                     ts=SIAMESE_THRE)
 
     if pred_target is None:
         print('Did not match to any brand, report as benign')
-        return phish_category, pred_target, plotvis, siamese_conf
+        return phish_category, pred_target, plotvis, siamese_conf, pred_boxes
 
     else:
         phish_category = 1
@@ -65,19 +70,22 @@ def main(url, screenshot_path):
                     (int(matched_coord[0] + 20), int(matched_coord[1] + 20)),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2)
 
-    return phish_category, pred_target, plotvis, siamese_conf
+    return phish_category, pred_target, plotvis, siamese_conf, pred_boxes
 
 
 if __name__ == "__main__":
 
     # os.environ["CUDA_VISIBLE_DEVICES"]="1"
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f', "--folder", help='Input folder path to parse',  default='./datasets/test_sites')
-    parser.add_argument('-r', "--results", help='Input results file name', default='./test.txt')
+    parser.add_argument('-f', "--folder", help='Input folder path to parse',  default='./datasets/cannot_detect_logo')
+    parser.add_argument('-r', "--results", help='Input results file name', default='./debug.txt')
+    parser.add_argument('-c', "--config", help='Config file path', default=None)
     args = parser.parse_args()
     date = args.folder.split('/')[-1]
     directory = args.folder
     results_path = args.results.split('.txt')[0] + "_pedia.txt"
+
+    ELE_MODEL, SIAMESE_THRE, SIAMESE_MODEL, LOGO_FEATS, LOGO_FILES, DOMAIN_MAP_PATH = load_config(args.config)
 
     if not os.path.exists(results_path):
         with open(results_path, "w+") as f:
@@ -106,7 +114,13 @@ if __name__ == "__main__":
                 continue
 
             else:
-                phish_category, phish_target, plotvis, siamese_conf = main(url=url, screenshot_path=screenshot_path)
+                phish_category, phish_target, plotvis, siamese_conf, pred_boxes = test(url=url, screenshot_path=screenshot_path,
+                                                                                       ELE_MODEL=ELE_MODEL,
+                                                                                       SIAMESE_THRE=SIAMESE_THRE,
+                                                                                       SIAMESE_MODEL=SIAMESE_MODEL,
+                                                                                       LOGO_FEATS=LOGO_FEATS,
+                                                                                       LOGO_FILES=LOGO_FILES,
+                                                                                       DOMAIN_MAP_PATH=DOMAIN_MAP_PATH)
 
                 # FIXME: call VTScan only when phishpedia report it as phishing
                 vt_result = "None"
