@@ -127,6 +127,7 @@ def cls_avg_heatmaps(cls, dataset):
 
 if __name__ == '__main__':
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+    # device = torch.device('cpu')
     
     val_tx = tv.transforms.Compose([
             tv.transforms.Resize((95, 95)),

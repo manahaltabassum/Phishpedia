@@ -1,6 +1,6 @@
-from .siamese_pedia.siamese_retrain.bit_pytorch.models import KNOWN_MODELS
-from .siamese_pedia.utils import brand_converter
-from .siamese_pedia.inference import siamese_inference, pred_siamese
+from src.siamese_pedia.siamese_retrain.bit_pytorch.models import KNOWN_MODELS
+from src.siamese_pedia.utils import brand_converter
+from src.siamese_pedia.inference import siamese_inference, pred_siamese
 import torch
 import os
 import numpy as np
@@ -22,7 +22,9 @@ def phishpedia_config(num_classes:int, weights_path:str, targetlist_path:str, gr
     '''
     
     # Initialize model
+    # print(torch.cuda.is_available())
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    # device = torch.device('cpu')
     model = KNOWN_MODELS["BiT-M-R50x1"](head_size=num_classes, zero_head=True)
 
     # Load weights
@@ -78,7 +80,7 @@ def phishpedia_classifier_logo(logo_boxes,
     with open(domain_map_path, 'rb') as handle:
         domain_map = pickle.load(handle)
 
-    print('number of logo boxes:', len(logo_boxes))
+    # print('number of logo boxes:', len(logo_boxes))
     matched_coord = None
     siamese_conf = None
 

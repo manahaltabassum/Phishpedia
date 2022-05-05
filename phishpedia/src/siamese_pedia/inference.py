@@ -7,7 +7,7 @@ from torch import nn
 import torch.nn.functional as F
 import torch
 from collections import OrderedDict
-from phishpedia.src.siamese_pedia.utils import brand_converter, resolution_alignment
+from .utils import brand_converter, resolution_alignment
 import matplotlib.pyplot as plt
 
 
@@ -33,6 +33,7 @@ def pred_siamese(img, model, imshow=False, title=None, grayscale=False):
     mean = [0.5, 0.5, 0.5]
     std = [0.5, 0.5, 0.5]
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    # device = torch.device('cpu')
 
     img_transforms = transforms.Compose(
         [transforms.ToTensor(),

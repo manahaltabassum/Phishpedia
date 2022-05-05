@@ -10,7 +10,6 @@ pandas
 numpy
 tqdm
 Pillow
-pathlib
 fvcore
 pycocotools
 scikit-learn

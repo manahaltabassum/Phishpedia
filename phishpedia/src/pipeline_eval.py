@@ -2,8 +2,8 @@ import os
 
 from tqdm import tqdm
 import time
-from phishpedia.src.siamese import *
-from phishpedia.src.detectron2_pedia.inference import *
+from src.siamese import *
+from src.detectron2_pedia.inference import *
 import argparse
 import errno
 
@@ -33,8 +33,11 @@ def phishpedia_eval(data_dir, mode, siamese_ts, write_txt):
         img_path = os.path.join(data_dir, folder, 'shot.png')
         html_path = os.path.join(data_dir, folder, 'html.txt')
         if mode == 'phish':
-            url = eval(open(os.path.join(data_dir, folder, 'info.txt'), encoding="ISO-8859-1").read())
-            url = url['url'] if isinstance(url, dict) else url
+            try:
+                url = eval(open(os.path.join(data_dir, folder, 'info.txt'), encoding="ISO-8859-1").read())
+                url = url['url'] if isinstance(url, dict) else url
+            except:
+                continue
         else:
             try:
                 url = open(os.path.join(data_dir, folder, 'info.txt'), encoding="ISO-8859-1").read()

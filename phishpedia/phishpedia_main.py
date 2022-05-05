@@ -1,8 +1,8 @@
-from .phishpedia_config import *
+from phishpedia_config import *
 import os
 import argparse
 import time
-from .src.util.chrome import *
+from src.util.chrome import *
 # import os
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
@@ -35,19 +35,19 @@ def test(url, screenshot_path, ELE_MODEL, SIAMESE_THRE, SIAMESE_MODEL, LOGO_FEAT
     phish_category = 0
     pred_target = None
     siamese_conf = None
-    print("Entering phishpedia")
+    # print("Entering phishpedia")
 
     ####################### Step1: layout detector ##############################################
     pred_boxes, _, _, _ = pred_rcnn(im=screenshot_path, predictor=ELE_MODEL)
     pred_boxes = pred_boxes.detach().cpu().numpy()  ## get predicted logo box
     plotvis = vis(screenshot_path, pred_boxes)
-    print("plot")
+    # print("plot")
 
     # If no element is reported
     if len(pred_boxes) == 0:
         print('No element is detected, report as benign')
         return phish_category, pred_target, plotvis, siamese_conf
-    print('Entering siamese')
+    # print('Entering siamese')
 
     ######################## Step2: Siamese (logo matcher) ########################################
     pred_target, matched_coord, siamese_conf = phishpedia_classifier_logo(logo_boxes=pred_boxes,
@@ -60,7 +60,7 @@ def test(url, screenshot_path, ELE_MODEL, SIAMESE_THRE, SIAMESE_MODEL, LOGO_FEAT
                                                                      ts=SIAMESE_THRE)
 
     if pred_target is None:
-        print('Did not match to any brand, report as benign')
+        # print('Did not match to any brand, report as benign')
         return phish_category, pred_target, plotvis, siamese_conf, pred_boxes
 
     else:
@@ -104,6 +104,8 @@ if __name__ == "__main__":
         #     continue
 
         try:
+            # Check each subdirectory within the input directory
+            # File format within each subdirectory in a specific layout
             print(item)
             full_path = os.path.join(directory, item)
 
@@ -135,7 +137,7 @@ if __name__ == "__main__":
                             vt_result = "None"
 
                     except Exception as e:
-                        print('VTScan is not working...')
+                        # print('VTScan is not working...')
                         vt_result = "error"
 
                 # write results as well as predicted images

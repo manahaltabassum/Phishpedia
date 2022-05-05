@@ -2,10 +2,21 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torch.autograd.gradcheck import zero_gradients
+# from torch.autograd.gradcheck import zero_gradients
 from torch.autograd import Variable
 import numpy as np
 import copy
+
+import collections
+
+def zero_gradients(x):
+    if isinstance(x, torch.Tensor):
+        if x.grad is not None:
+            x.grad.detach_()
+            x.grad.zero_()
+    elif isinstance(x, collections.abc.Iterable):
+        for elem in x:
+            zero_gradients(elem)
 
 def deepfool(model, num_classes, image, label, I, overshoot=0.02, max_iter=100, clip_min=-1.0, clip_max=1.0):
     '''
@@ -42,12 +53,15 @@ def deepfool(model, num_classes, image, label, I, overshoot=0.02, max_iter=100, 
         model.zero_grad()
         fs[0, I[0]].backward(retain_graph=True) # backpropogate the maximum confidence score
         grad_orig = x.grad.data.detach().cpu().numpy().copy()
+        # print('Original gradient')
+        # print(grad_orig)
 
         for k in range(1, num_classes):
             zero_gradients(x)
             model.zero_grad()
             fs[0, I[k]].backward(retain_graph=True)
             cur_grad = x.grad.data.detach().cpu().numpy().copy()
+            # print(cur_grad)
 
             # set new w_k and new f_k
             w_k = cur_grad - grad_orig

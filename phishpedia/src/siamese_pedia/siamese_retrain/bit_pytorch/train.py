@@ -31,7 +31,7 @@ import phishpedia.src.siamese_pedia.siamese_retrain.bit_hyperrule as bit_hyperru
 from phishpedia.src.siamese_pedia.siamese_retrain.bit_pytorch.dataloader import GetLoader
 
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="0, 1"
+# os.environ["CUDA_VISIBLE_DEVICES"]="0, 1"
 
 
 def topk(output, target, ks=(1,)):
@@ -183,6 +183,7 @@ def main(args):
     torch.backends.cudnn.benchmark = True
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    # device = torch.device('cpu')
     logger.info("Going to train on {}".format(device))
 
     train_set, valid_set, train_loader, valid_loader = mktrainval(args, logger)
